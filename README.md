@@ -1,7 +1,7 @@
 # WORKSHOP-2-Object-detection-using-web-camera
 ## Aim:
 
-To implement a real-time object detection system using a webcam and YOLOv4 to detect and classify objects for 10 seconds.
+To implement a real-time object detection system using a webcam and YOLOv4 to detect and classify objects.
 ## Procedure:
 
 1. Load the pre-trained YOLOv4 network and configuration files.
@@ -18,7 +18,6 @@ To implement a real-time object detection system using a webcam and YOLOv4 to de
 ```python
 import cv2
 import numpy as np
-import time
 
 # Load YOLOv4 network
 net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
@@ -27,51 +26,28 @@ net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
 with open("coco.names", "r") as f:
     classes = [line.strip() for line in f.readlines()]
 
-# Get output layer names
 layer_names = net.getLayerNames()
 output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers().flatten()]
 
-# Try to open the webcam
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # For Windows; for Linux, try cv2.CAP_V4L2 or cv2.CAP_ANY
-
-# Check if the webcam is opened successfully
-if not cap.isOpened():
-    print("Error: Could not open video stream from webcam.")
-    exit()
-
-# Start a timer
-start_time = time.time()
+# Set up video capture for webcam
+cap = cv2.VideoCapture(0)
 
 while True:
-    # Check elapsed time
-    elapsed_time = time.time() - start_time
-    if elapsed_time > 50:  # Stop after 10 seconds
-        print("Time's up! Stopping object detection.")
-        break
-
     ret, frame = cap.read()
-
-    # Check if frame is captured correctly
-    if not ret or frame is None:
-        print("Error: Failed to capture frame from webcam.")
-        break
-
-    # Get frame dimensions
     height, width, channels = frame.shape
 
     # Prepare the image for YOLOv4
     blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
     net.setInput(blob)
-
+    
     # Get YOLO output
     outputs = net.forward(output_layers)
-
+    
     # Initialize lists to store detected boxes, confidences, and class IDs
     boxes = []
     confidences = []
     class_ids = []
 
-    # Process each output layer
     for output in outputs:
         for detection in output:
             scores = detection[5:]
@@ -106,7 +82,7 @@ while True:
             cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
             cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-    # Display the image with detected objects
+    # Show the image with detected objects
     cv2.imshow("YOLOv4 Real-Time Object Detection", frame)
 
     # Exit the loop if 'q' is pressed
@@ -116,6 +92,7 @@ while True:
 # Release video capture and close windows
 cap.release()
 cv2.destroyAllWindows()
+
 ```
 
 ## Output:
